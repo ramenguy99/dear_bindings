@@ -83,8 +83,8 @@ def add_source_file_and_line(element, root):
             source_info["filename"] = source_file
         if source_line is not None:
             source_info["line"] = source_line
-            
-            
+
+
 # Emit type comprehension storage classes
 def emit_type_comprehension_storage_classes(container, storage_classes):
     if len(storage_classes) > 0:
@@ -116,6 +116,8 @@ def emit_type_comprehension_pointer(pointer):
 
     if hasattr(pointer, 'nullable'):
         result["is_nullable"] = pointer.nullable
+    if hasattr(pointer, 'reference'):
+        result["is_reference"] = pointer.reference
 
     result["inner_type"] = emit_type_comprehension_element(pointer.target)
 

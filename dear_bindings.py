@@ -88,6 +88,7 @@ def convert_header(
         dest_file_no_ext,
         template_dir,
         no_struct_by_value_arguments,
+        no_convert_references_to_pointers,
         no_generate_default_arg_functions,
         generate_unformatted_functions,
         is_backend,
@@ -181,10 +182,10 @@ def convert_header(
                                           "ImGui::SliderBehaviorT",
                                           "ImGui::RoundScalarWithFormatT",
                                           "ImGui::CheckboxFlagsT"])
-    
+
     mod_remove_functions.apply(dom_root, ["ImGui::GetInputTextState",
                                           "ImGui::DebugNodeInputTextState"])
-    
+
 
     mod_add_prefix_to_loose_functions.apply(dom_root, "c")
 
@@ -224,7 +225,8 @@ def convert_header(
     mod_set_arguments_as_nullable.apply(dom_root, ["fmt"], False)  # All arguments called "fmt" are non-nullable
     mod_remove_operators.apply(dom_root)
     mod_remove_heap_constructors_and_destructors.apply(dom_root)
-    mod_convert_references_to_pointers.apply(dom_root)
+    if not no_convert_references_to_pointers:
+        mod_convert_references_to_pointers.apply(dom_root)
     if no_struct_by_value_arguments:
         mod_convert_by_value_struct_args_to_pointers.apply(dom_root)
     # Assume IM_VEC2_CLASS_EXTRA and IM_VEC4_CLASS_EXTRA are never defined as they are likely to just cause problems
@@ -342,7 +344,7 @@ def convert_header(
                                      ],
                                      type_priorities={
                                      })
-    
+
     if not no_generate_default_arg_functions:
         mod_generate_default_argument_functions.apply(dom_root,
                                                       # We ignore functions that don't get called often because in those
@@ -473,7 +475,7 @@ def convert_header(
                                                 'ImGui_Text',
                                                 'ImGuiTextBuffer_appendf'
                                             ])
-        
+
     if is_imgui_internal:
         mod_move_elements.apply(dom_root,
                                 main_src_root,
@@ -691,6 +693,9 @@ if __name__ == '__main__':
     parser.add_argument('--generateunformattedfunctions',
                         action='store_true',
                         help='Generate unformatted variants of format string supporting functions')
+    parser.add_argument('--noconvertreferencestopointers',
+                        action='store_true',
+                        help='Do not convert references to pointers')
     parser.add_argument('--backend',
                         action='store_true',
                         help='Indicates that the header being processed is a backend header (experimental)')
@@ -776,6 +781,7 @@ if __name__ == '__main__':
             args.templatedir,
             args.nopassingstructsbyvalue,
             args.nogeneratedefaultargfunctions,
+            args.noconvertreferencestopointers,
             args.generateunformattedfunctions,
             args.backend,
             args.imgui_include_dir,
